@@ -6,22 +6,35 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-class Config:
-    """프로젝트 설정 클래스"""
+# 설정을 함수 기반으로 변경하여 순환 임포트 방지
+def get_huggingface_token() -> str:
+    """HuggingFace API 토큰 반환"""
+    return os.getenv("HUGGINGFACE_TOKEN", "")
 
-    # API 설정
-    HUGGINGFACE_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
-    HUGGINGFACE_API_BASE = "https://huggingface.co/api"
 
-    # 데이터베이스 설정
-    DATABASE_PATH = "data/llm_evaluations.db"
+def get_huggingface_api_base() -> str:
+    """HuggingFace API 기본 URL 반환"""
+    return "https://huggingface.co/api"
 
-    # 디렉토리 설정
-    REPORTS_DIR = "reports"
-    EXPORTS_DIR = "exports"
 
-    # 수집할 태스크 목록 (README의 지원 태스크와 일치)
-    TASKS_TO_COLLECT = [
+def get_database_path() -> str:
+    """데이터베이스 파일 경로 반환"""
+    return "data/llm_evaluations.db"
+
+
+def get_reports_dir() -> str:
+    """리포트 디렉토리 경로 반환"""
+    return "reports"
+
+
+def get_exports_dir() -> str:
+    """내보내기 디렉토리 경로 반환"""
+    return "exports"
+
+
+def get_tasks_to_collect() -> List[str]:
+    """수집할 태스크 목록 반환"""
+    return [
         "text-generation",
         "text-classification",
         "question-answering",
@@ -29,17 +42,35 @@ class Config:
         "translation"
     ]
 
-    # 태스크별 설정 (README 예시와 일치)
-    MODELS_PER_TASK = int(os.getenv("MODELS_PER_TASK", 30))
-    MAX_EVALUATIONS_PER_MODEL = 10
 
-    # API 요청 설정 (README 예시와 일치)
-    API_DELAY = float(os.getenv("API_DELAY", 0.1))  # 초
-    REQUEST_TIMEOUT = 30  # 초
-    MAX_RETRIES = 3
+def get_models_per_task() -> int:
+    """태스크별 수집할 모델 수 반환"""
+    return int(os.getenv("MODELS_PER_TASK", 30))
 
-    # 태스크 카테고리 정의 (README 테이블과 정확히 일치)
-    TASK_CATEGORIES = {
+
+def get_max_evaluations_per_model() -> int:
+    """모델당 최대 평가 결과 수 반환"""
+    return 10
+
+
+def get_api_delay() -> float:
+    """API 요청 간격 반환"""
+    return float(os.getenv("API_DELAY", 0.1))
+
+
+def get_request_timeout() -> int:
+    """API 요청 타임아웃 반환"""
+    return 30
+
+
+def get_max_retries() -> int:
+    """최대 재시도 횟수 반환"""
+    return 3
+
+
+def get_task_categories() -> Dict[str, Dict[str, Any]]:
+    """태스크 카테고리 정보 반환"""
+    return {
         "text-generation": {
             "description": "텍스트 생성",
             "common_datasets": ["hellaswag", "arc", "mmlu"],
@@ -67,18 +98,93 @@ class Config:
         }
     }
 
-    # 로깅 설정 (README 예시와 일치)
-    LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
-    LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
-    @classmethod
-    def validate(cls):
-        """설정 검증"""
-        required_dirs = [cls.REPORTS_DIR, cls.EXPORTS_DIR, "data"]
-        for directory in required_dirs:
-            os.makedirs(directory, exist_ok=True)
+def get_log_level() -> str:
+    """로그 레벨 반환"""
+    return os.getenv("LOG_LEVEL", "INFO")
 
-    @classmethod
-    def get_task_info(cls, task_name: str) -> Dict[str, Any]:
+
+def get_log_format() -> str:
+    """로그 포맷 반환"""
+    return "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+
+def get_task_info(task_name: str) -> Dict[str, Any]:
+    """특정 태스크의 정보 반환"""
+    return get_task_categories().get(task_name, {})
+
+
+def validate_config():
+    """설정 검증 및 디렉토리 생성"""
+    required_dirs = [get_reports_dir(), get_exports_dir(), "data"]
+    for directory in required_dirs:
+        os.makedirs(directory, exist_ok=True)
+
+
+# 하위 호환성을 위한 클래스 래퍼 (기존 코드와의 호환성 유지)
+class Config:
+    """하위 호환성을 위한 설정 클래스"""
+
+    @property
+    def HUGGINGFACE_TOKEN(self):
+        return get_huggingface_token()
+
+    @property
+    def HUGGINGFACE_API_BASE(self):
+        return get_huggingface_api_base()
+
+    @property
+    def DATABASE_PATH(self):
+        return get_database_path()
+
+    @property
+    def REPORTS_DIR(self):
+        return get_reports_dir()
+
+    @property
+    def EXPORTS_DIR(self):
+        return get_exports_dir()
+
+    @property
+    def TASKS_TO_COLLECT(self):
+        return get_tasks_to_collect()
+
+    @property
+    def MODELS_PER_TASK(self):
+        return get_models_per_task()
+
+    @property
+    def MAX_EVALUATIONS_PER_MODEL(self):
+        return get_max_evaluations_per_model()
+
+    @property
+    def API_DELAY(self):
+        return get_api_delay()
+
+    @property
+    def REQUEST_TIMEOUT(self):
+        return get_request_timeout()
+
+    @property
+    def MAX_RETRIES(self):
+        return get_max_retries()
+
+    @property
+    def TASK_CATEGORIES(self):
+        return get_task_categories()
+
+    @property
+    def LOG_LEVEL(self):
+        return get_log_level()
+
+    @property
+    def LOG_FORMAT(self):
+        return get_log_format()
+
+    def get_task_info(self, task_name: str) -> Dict[str, Any]:
         """특정 태스크의 정보 반환"""
-        return cls.TASK_CATEGORIES.get(task_name, {})
+        return get_task_info(task_name)
+
+    def validate(self):
+        """설정 검증"""
+        validate_config()
