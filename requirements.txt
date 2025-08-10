@@ -1,3 +1,58 @@
-requests>=2.28.0
-pandas>=1.5.0
-python-dotenv>=0.19.0
+# HuggingFace LLM 평가 데이터 수집 프로젝트 의존성
+# 핵심 라이브러리
+requests>=2.28.0,<3.0.0
+pandas>=1.5.0,<3.0.0
+python-dotenv>=0.19.0,<2.0.0
+
+# 데이터베이스 (SQLite는 Python 내장이지만 명시)
+# sqlite3는 Python 표준 라이브러리
+
+# 타입 힌팅 (Python 3.8+ 호환성)
+typing-extensions>=4.0.0; python_version<"3.10"
+
+# 데이터 검증
+pydantic>=1.10.0,<3.0.0
+
+# 로깅 개선
+colorama>=0.4.4  # 크로스 플랫폼 컬러 로깅
+rich>=12.0.0     # 풍부한 터미널 출력
+
+# 날짜/시간 처리
+python-dateutil>=2.8.0
+
+# JSON 처리 개선
+orjson>=3.8.0; platform_machine!="armv7l"  # ARM 호환성 고려
+
+# 설정 관리
+pyyaml>=6.0
+
+# 개발 도구 (선택사항)
+# [dev]
+pytest>=7.0.0
+pytest-cov>=4.0.0
+black>=22.0.0
+flake8>=5.0.0
+mypy>=1.0.0
+pre-commit>=2.20.0
+
+# 테스팅 도구
+# [test]
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+pytest-mock>=3.10.0
+responses>=0.23.0  # HTTP 요청 모킹
+
+# 프로덕션 도구
+# [prod]
+gunicorn>=20.1.0  # 추후 웹 인터페이스 고려
+uvloop>=0.17.0; sys_platform!="win32"  # 성능 향상 (Linux/Mac)
+
+# 보안
+# [security]
+cryptography>=3.4.8
+certifi>=2022.12.7  # SSL 인증서 업데이트
+
+# 모니터링
+# [monitoring]
+psutil>=5.9.0  # 시스템 리소스 모니터링
+memory-profiler>=0.60.0  # 메모리 사용량 분석
