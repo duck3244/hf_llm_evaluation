@@ -1,0 +1,84 @@
+sequenceDiagram
+    participant User
+    participant Main as main.py
+    participant Collector as LLMEvaluationCollector
+    participant API as HuggingFaceAPI
+    participant DB as DatabaseManager
+    participant HF as HuggingFace Hub
+    participant SQLite as SQLite DB
+    participant Logger
+    
+    User->>Main: python main.py --collect-all
+    Main->>Logger: 로깅 초기화
+    Main->>Collector: LLMEvaluationCollector()
+    
+    Note over Collector: 초기화 과정
+    Collector->>API: HuggingFaceAPI 생성
+    Collector->>DB: DatabaseManager 생성
+    DB->>SQLite: 데이터베이스 초기화
+    Collector->>DB: 태스크 카테고리 초기화
+    
+    loop 각 태스크별 수집
+        Main->>Collector: collect_models_by_task(task, limit)
+        
+        Note over Collector: 모델 목록 수집
+        Collector->>API: get_models(task, limit)
+        API->>HF: GET /api/models?pipeline_tag=task
+        HF-->>API: 모델 목록 반환
+        API-->>Collector: List[Dict] 모델 데이터
+        
+        loop 각 모델별 처리
+            Collector->>API: get_model_info(model_id)
+            API->>HF: GET /api/models/{model_id}
+            HF-->>API: 모델 상세 정보
+            API-->>Collector: ModelInfo 객체
+            
+            Collector->>DB: insert_model(model_info)
+            DB->>SQLite: INSERT INTO models
+            SQLite-->>DB: 저장 완료
+            DB-->>Collector: 성공/실패
+            
+            Collector->>Logger: 진행률 로깅
+        end
+        
+        Note over Collector: 상위 모델 평가 수집
+        loop 상위 5개 모델
+            Collector->>API: get_model_evaluations(model_id)
+            API->>HF: 모델 카드 정보 요청
+            HF-->>API: 모델 카드 데이터
+            API->>API: parse_model_card_evaluations()
+            API-->>Collector: List[EvaluationResult]
+            
+            loop 각 평가 결과
+                Collector->>DB: insert_evaluation(evaluation)
+                DB->>SQLite: INSERT INTO evaluations
+                SQLite-->>DB: 저장 완료
+            end
+        end
+        
+        Collector->>Collector: 통계 업데이트
+        Collector-->>Main: 수집 완료
+    end
+    
+    Note over Main: 리포트 생성
+    Main->>Collector: generate_task_report(task)
+    Collector->>DB: get_models_by_task(task)
+    DB->>SQLite: SELECT FROM models
+    SQLite-->>DB: 모델 데이터
+    DB-->>Collector: DataFrame
+    Collector->>Collector: 리포트 내용 생성
+    Collector-->>Main: 리포트 파일 경로
+    
+    Note over Main: 데이터 내보내기
+    Main->>Collector: export_data()
+    Collector->>DB: export_to_csv()
+    DB->>SQLite: SELECT * FROM models, evaluations
+    SQLite-->>DB: 전체 데이터
+    DB->>DB: CSV 파일 생성
+    DB-->>Collector: 내보내기 완료
+    
+    Collector-->>Main: 전체 작업 완료
+    Main-->>User: 수집 완료 메시지
+    
+    Note over User,SQLite: 결과물
+    Note right of SQLite: • SQLite 데이터베이스<br/>• 태스크별 리포트<br/>• CSV 내보내기 파일<br/>• 로그 파일

@@ -1,0 +1,180 @@
+classDiagram
+    %% 메인 설정 클래스
+    class Config {
+        +str HUGGINGFACE_TOKEN
+        +str DATABASE_PATH
+        +list TASKS_TO_COLLECT
+        +int MODELS_PER_TASK
+        +float API_DELAY
+        +dict TASK_CATEGORIES
+        +validate()
+        +get_task_info(task_name)
+    }
+    
+    %% 데이터 모델 클래스들
+    class ModelInfo {
+        +str model_id
+        +str model_name
+        +str author
+        +int downloads
+        +int likes
+        +str pipeline_tag
+        +list~str~ tags
+        +list~str~ task_categories
+        +str model_size
+        +str license
+        +to_dict()
+        +from_dict(data)
+    }
+    
+    class EvaluationResult {
+        +str model_id
+        +str dataset_name
+        +str metric_name
+        +float metric_value
+        +str task_type
+        +str evaluation_date
+        +dict additional_info
+        +bool verified
+        +to_dict()
+        +from_dict(data)
+    }
+    
+    class TaskCategory {
+        +str task_name
+        +str description
+        +list~str~ common_datasets
+        +list~str~ common_metrics
+        +list~str~ subcategories
+        +to_dict()
+        +from_dict(data)
+    }
+    
+    class CollectionStats {
+        +str collection_date
+        +int total_models
+        +int total_evaluations
+        +list~str~ tasks_collected
+        +float collection_duration
+        +int errors_count
+        +float success_rate
+        +update_success_rate()
+        +to_dict()
+    }
+    
+    %% API 클라이언트
+    class HuggingFaceAPI {
+        +str base_url
+        +dict headers
+        +Session session
+        +get_models(task, limit, sort)
+        +get_model_info(model_id)
+        +get_model_evaluations(model_id)
+        +parse_model_card_evaluations(model_id)
+        +search_models(query, limit)
+        +convert_to_model_info(model_data)
+        +close()
+    }
+    
+    class HuggingFaceAPIError {
+        <<exception>>
+    }
+    
+    class RateLimitError {
+        <<exception>>
+    }
+    
+    %% 데이터베이스 관리자
+    class DatabaseManager {
+        +str db_path
+        +init_database()
+        +insert_model(model_info)
+        +insert_evaluation(evaluation)
+        +insert_task_category(task_category)
+        +get_models_by_task(task, limit)
+        +get_evaluations_by_model(model_id)
+        +get_task_leaderboard(task_type, metric_name)
+        +get_model_statistics()
+        +search_models(query, limit)
+        +export_to_csv(output_dir)
+        +backup_database(backup_path)
+        +vacuum_database()
+    }
+    
+    class DatabaseError {
+        <<exception>>
+    }
+    
+    %% 메인 수집기
+    class LLMEvaluationCollector {
+        +HuggingFaceAPI hf_api
+        +DatabaseManager db_manager
+        +Config config
+        +CollectionStats collection_stats
+        +collect_models_by_task(task, limit)
+        +collect_evaluations_for_model(model_id, max_evaluations)
+        +collect_all_tasks(tasks, models_per_task)
+        +update_model_data(model_ids, batch_size)
+        +generate_task_report(task, output_dir)
+        +generate_leaderboard(task_type, metric_name)
+        +export_data(output_dir)
+        +get_collection_summary()
+        +close()
+    }
+    
+    class CollectionError {
+        <<exception>>
+    }
+    
+    %% 로깅 유틸리티
+    class Logger {
+        <<utility>>
+        +setup_logger(name, level, log_file)
+        +get_logger(name)
+        +setup_colored_logger(name, level)
+        +init_project_logging(log_level, log_dir)
+    }
+    
+    class ProgressLogger {
+        +int total
+        +int current
+        +Logger logger
+        +str prefix
+        +int interval
+        +datetime start_time
+        +update(increment)
+        +finish()
+    }
+    
+    %% 관계 정의
+    LLMEvaluationCollector --> HuggingFaceAPI : uses
+    LLMEvaluationCollector --> DatabaseManager : uses
+    LLMEvaluationCollector --> Config : uses
+    LLMEvaluationCollector --> CollectionStats : contains
+    LLMEvaluationCollector --> ModelInfo : creates
+    LLMEvaluationCollector --> EvaluationResult : creates
+    LLMEvaluationCollector --> TaskCategory : creates
+    
+    HuggingFaceAPI --> ModelInfo : creates
+    HuggingFaceAPI --> EvaluationResult : creates
+    HuggingFaceAPI ..> HuggingFaceAPIError : throws
+    HuggingFaceAPI ..> RateLimitError : throws
+    
+    DatabaseManager --> ModelInfo : stores/retrieves
+    DatabaseManager --> EvaluationResult : stores/retrieves
+    DatabaseManager --> TaskCategory : stores/retrieves
+    DatabaseManager ..> DatabaseError : throws
+    
+    LLMEvaluationCollector --> Logger : uses
+    LLMEvaluationCollector --> ProgressLogger : uses
+    LLMEvaluationCollector ..> CollectionError : throws
+    
+    HuggingFaceAPIError --|> Exception
+    RateLimitError --|> HuggingFaceAPIError
+    DatabaseError --|> Exception
+    CollectionError --|> Exception
+    
+    %% 컴포지션 관계
+    Config *-- TaskCategory : contains
+    CollectionStats *-- ModelInfo : aggregates
+    CollectionStats *-- EvaluationResult : aggregates

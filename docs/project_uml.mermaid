@@ -1,0 +1,134 @@
+graph TB
+    %% 메인 시스템
+    Main["`**main.py**
+    메인 실행 스크립트
+    - collect_single_task()
+    - collect_all_tasks()
+    - generate_reports()
+    - show_statistics()`"]
+    
+    Config["`**config.py**
+    설정 관리
+    - TASKS_TO_COLLECT
+    - MODELS_PER_TASK
+    - API_DELAY
+    - TASK_CATEGORIES`"]
+    
+    %% 핵심 수집기
+    Collector["`**LLMEvaluationCollector**
+    메인 수집기
+    - collect_models_by_task()
+    - collect_evaluations_for_model()
+    - generate_task_report()
+    - generate_leaderboard()
+    - export_data()`"]
+    
+    %% API 클라이언트
+    API["`**HuggingFaceAPI**
+    API 클라이언트
+    - get_models()
+    - get_model_info()
+    - get_model_evaluations()
+    - parse_model_card_evaluations()
+    - search_models()`"]
+    
+    %% 데이터베이스 관리자
+    DB["`**DatabaseManager**
+    데이터베이스 관리
+    - insert_model()
+    - insert_evaluation()
+    - get_models_by_task()
+    - get_task_leaderboard()
+    - export_to_csv()`"]
+    
+    %% 데이터 모델들
+    subgraph DataModels["`**데이터 모델**`"]
+        ModelInfo["`**ModelInfo**
+        - model_id: str
+        - model_name: str
+        - author: str
+        - downloads: int
+        - pipeline_tag: str
+        - tags: List[str]`"]
+        
+        EvalResult["`**EvaluationResult**
+        - model_id: str
+        - dataset_name: str
+        - metric_name: str
+        - metric_value: float
+        - task_type: str`"]
+        
+        TaskCategory["`**TaskCategory**
+        - task_name: str
+        - description: str
+        - common_datasets: List[str]
+        - common_metrics: List[str]`"]
+    end
+    
+    %% 유틸리티
+    Logger["`**Logger**
+    로깅 시스템
+    - setup_logger()
+    - ProgressLogger
+    - log_execution_time()`"]
+    
+    %% 외부 시스템
+    HFAPI["`**HuggingFace Hub**
+    외부 API
+    - /models
+    - /models/{id}
+    - model cards`"]
+    
+    SQLite["`**SQLite Database**
+    데이터 저장소
+    - models 테이블
+    - evaluations 테이블
+    - task_categories 테이블`"]
+    
+    %% 출력 파일들
+    subgraph Outputs["`**출력**`"]
+        Reports["`**Reports**
+        - task_report_*.md
+        - leaderboard_*.md`"]
+        
+        Exports["`**Exports**
+        - models.csv
+        - evaluations.csv`"]
+    end
+    
+    %% 관계 정의
+    Main --> Collector
+    Main --> Config
+    Main --> Logger
+    
+    Collector --> API
+    Collector --> DB
+    Collector --> DataModels
+    Collector --> Logger
+    Collector --> Reports
+    Collector --> Exports
+    
+    API --> HFAPI
+    API --> DataModels
+    API --> Logger
+    
+    DB --> SQLite
+    DB --> DataModels
+    DB --> Logger
+    
+    Config --> DataModels
+    
+    %% 스타일링
+    classDef mainClass fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef coreClass fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef dataClass fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef utilClass fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef externalClass fill:#ffebee,stroke:#b71c1c,stroke-width:2px
+    classDef outputClass fill:#f1f8e9,stroke:#33691e,stroke-width:2px
+    
+    class Main,Config mainClass
+    class Collector,API,DB coreClass
+    class DataModels,ModelInfo,EvalResult,TaskCategory dataClass
+    class Logger utilClass
+    class HFAPI,SQLite externalClass
+    class Outputs,Reports,Exports outputClass
