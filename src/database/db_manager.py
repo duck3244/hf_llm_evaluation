@@ -1,6 +1,6 @@
 """
 데이터베이스 관리 모듈
-SQLite를 사용한 데이터 저장 및 조회 기능
+README 예시와 일치하도록 수정된 SQLite 데이터 저장 및 조회 기능
 """
 
 import sqlite3
@@ -15,7 +15,7 @@ from ..models.data_models import (
     ModelInfo, EvaluationResult, TaskCategory, CollectionStats,
     serialize_for_db, deserialize_from_db
 )
-from ..utils.logger import get_logger
+from ..utils.logger import get_logger, log_database_operation
 
 logger = get_logger(__name__)
 
@@ -26,22 +26,22 @@ class DatabaseError(Exception):
 
 
 class DatabaseManager:
-    """데이터베이스 관리 클래스"""
+    """데이터베이스 관리 클래스 (README 예시 구현)"""
 
     def __init__(self, db_path: str = "data/llm_evaluations.db"):
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
 
-        logger.info(f"데이터베이스 초기화: {self.db_path}")
+        logger.info(f"💾 데이터베이스 초기화: {self.db_path}")
         self.init_database()
 
     def init_database(self):
-        """데이터베이스 및 테이블 초기화"""
+        """데이터베이스 및 테이블 초기화 (README 데이터베이스 스키마 구현)"""
         try:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
 
-                # 모델 정보 테이블
+                # 모델 정보 테이블 (README 모델 정보 구현)
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS models (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -63,7 +63,7 @@ class DatabaseManager:
                     )
                 """)
 
-                # 평가 결과 테이블
+                # 평가 결과 테이블 (README 평가 데이터 구현)
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS evaluations (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -82,7 +82,7 @@ class DatabaseManager:
                     )
                 """)
 
-                # 태스크 카테고리 테이블
+                # 태스크 카테고리 테이블 (README 태스크 테이블 구현)
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS task_categories (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -110,7 +110,7 @@ class DatabaseManager:
                     )
                 """)
 
-                # 수집 통계 테이블
+                # 수집 통계 테이블 (README 통계 구현)
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS collection_stats (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -125,22 +125,29 @@ class DatabaseManager:
                     )
                 """)
 
-                # 인덱스 생성
-                cursor.execute("CREATE INDEX IF NOT EXISTS idx_models_pipeline_tag ON models (pipeline_tag)")
-                cursor.execute("CREATE INDEX IF NOT EXISTS idx_models_downloads ON models (downloads)")
-                cursor.execute("CREATE INDEX IF NOT EXISTS idx_evaluations_model_id ON evaluations (model_id)")
-                cursor.execute("CREATE INDEX IF NOT EXISTS idx_evaluations_task_type ON evaluations (task_type)")
-                cursor.execute("CREATE INDEX IF NOT EXISTS idx_evaluations_metric ON evaluations (metric_name)")
+                # 성능 최적화를 위한 인덱스 생성
+                indexes = [
+                    "CREATE INDEX IF NOT EXISTS idx_models_pipeline_tag ON models (pipeline_tag)",
+                    "CREATE INDEX IF NOT EXISTS idx_models_downloads ON models (downloads DESC)",
+                    "CREATE INDEX IF NOT EXISTS idx_models_author ON models (author)",
+                    "CREATE INDEX IF NOT EXISTS idx_evaluations_model_id ON evaluations (model_id)",
+                    "CREATE INDEX IF NOT EXISTS idx_evaluations_task_type ON evaluations (task_type)",
+                    "CREATE INDEX IF NOT EXISTS idx_evaluations_metric ON evaluations (metric_name)",
+                    "CREATE INDEX IF NOT EXISTS idx_evaluations_value ON evaluations (metric_value DESC)"
+                ]
+
+                for index_sql in indexes:
+                    cursor.execute(index_sql)
 
                 conn.commit()
-                logger.info("데이터베이스 테이블 초기화 완료")
+                logger.info("✅ 데이터베이스 테이블 및 인덱스 초기화 완료")
 
         except sqlite3.Error as e:
-            logger.error(f"데이터베이스 초기화 실패: {e}")
+            logger.error(f"❌ 데이터베이스 초기화 실패: {e}")
             raise DatabaseError(f"데이터베이스 초기화 실패: {e}")
 
     def insert_model(self, model_info: ModelInfo) -> bool:
-        """모델 정보를 데이터베이스에 저장"""
+        """모델 정보를 데이터베이스에 저장 (README 예시 구현)"""
         try:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
@@ -169,15 +176,16 @@ class DatabaseManager:
                 ))
 
                 conn.commit()
-                logger.debug(f"모델 저장 완료: {model_info.model_id}")
+                log_database_operation("INSERT", "models", 1, logger)
+                logger.debug(f"✅ 모델 저장 완료: {model_info.model_id}")
                 return True
 
         except sqlite3.Error as e:
-            logger.error(f"모델 저장 실패 ({model_info.model_id}): {e}")
+            logger.error(f"❌ 모델 저장 실패 ({model_info.model_id}): {e}")
             return False
 
     def insert_evaluation(self, evaluation: EvaluationResult) -> bool:
-        """평가 결과를 데이터베이스에 저장"""
+        """평가 결과를 데이터베이스에 저장 (README 예시 구현)"""
         try:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
@@ -202,15 +210,16 @@ class DatabaseManager:
                 ))
 
                 conn.commit()
-                logger.debug(f"평가 결과 저장 완료: {evaluation.model_id} - {evaluation.metric_name}")
+                log_database_operation("INSERT", "evaluations", 1, logger)
+                logger.debug(f"✅ 평가 결과 저장: {evaluation.model_id} - {evaluation.metric_name}")
                 return True
 
         except sqlite3.Error as e:
-            logger.error(f"평가 결과 저장 실패: {e}")
+            logger.error(f"❌ 평가 결과 저장 실패: {e}")
             return False
 
     def insert_task_category(self, task_category: TaskCategory) -> bool:
-        """태스크 카테고리 정보 저장"""
+        """태스크 카테고리 정보 저장 (README 태스크 테이블 구현)"""
         try:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
@@ -228,14 +237,15 @@ class DatabaseManager:
                 ))
 
                 conn.commit()
+                log_database_operation("INSERT", "task_categories", 1, logger)
                 return True
 
         except sqlite3.Error as e:
-            logger.error(f"태스크 카테고리 저장 실패: {e}")
+            logger.error(f"❌ 태스크 카테고리 저장 실패: {e}")
             return False
 
     def get_models_by_task(self, task: str, limit: Optional[int] = None) -> pd.DataFrame:
-        """특정 태스크의 모델들을 조회"""
+        """특정 태스크의 모델들을 조회 (README 예시 구현)"""
         try:
             with sqlite3.connect(self.db_path) as conn:
                 query = """
@@ -257,14 +267,15 @@ class DatabaseManager:
                     df['task_categories'] = df['task_categories'].apply(
                         lambda x: deserialize_from_db(x, list) if x else [])
 
+                logger.debug(f"📊 태스크 '{task}' 모델 조회: {len(df)}개")
                 return df
 
         except sqlite3.Error as e:
-            logger.error(f"모델 조회 실패: {e}")
+            logger.error(f"❌ 모델 조회 실패: {e}")
             return pd.DataFrame()
 
     def get_evaluations_by_model(self, model_id: str) -> pd.DataFrame:
-        """특정 모델의 평가 결과를 조회"""
+        """특정 모델의 평가 결과를 조회 (README 예시 구현)"""
         try:
             with sqlite3.connect(self.db_path) as conn:
                 query = "SELECT * FROM evaluations WHERE model_id = ? ORDER BY collected_at DESC"
@@ -279,15 +290,16 @@ class DatabaseManager:
                         lambda x: deserialize_from_db(x, dict) if x else {}
                     )
 
+                logger.debug(f"📊 모델 '{model_id}' 평가 결과 조회: {len(df)}개")
                 return df
 
         except sqlite3.Error as e:
-            logger.error(f"평가 결과 조회 실패: {e}")
+            logger.error(f"❌ 평가 결과 조회 실패: {e}")
             return pd.DataFrame()
 
     def get_task_leaderboard(self, task_type: str, metric_name: str,
                              dataset_name: Optional[str] = None, limit: int = 50) -> pd.DataFrame:
-        """태스크별 리더보드를 생성"""
+        """태스크별 리더보드를 생성 (README 리더보드 구현)"""
         try:
             with sqlite3.connect(self.db_path) as conn:
                 query = """
@@ -307,14 +319,16 @@ class DatabaseManager:
                 query += " ORDER BY e.metric_value DESC LIMIT ?"
                 params.append(limit)
 
-                return pd.read_sql_query(query, conn, params=params)
+                df = pd.read_sql_query(query, conn, params=params)
+                logger.debug(f"🏆 리더보드 생성: {task_type}-{metric_name} ({len(df)}개)")
+                return df
 
         except sqlite3.Error as e:
-            logger.error(f"리더보드 조회 실패: {e}")
+            logger.error(f"❌ 리더보드 조회 실패: {e}")
             return pd.DataFrame()
 
     def get_model_statistics(self) -> Dict[str, Any]:
-        """모델 통계 정보 반환"""
+        """모델 통계 정보 반환 (README 통계 구현)"""
         try:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
@@ -327,7 +341,7 @@ class DatabaseManager:
                 cursor.execute("""
                     SELECT pipeline_tag, COUNT(*) 
                     FROM models 
-                    WHERE pipeline_tag IS NOT NULL 
+                    WHERE pipeline_tag IS NOT NULL AND pipeline_tag != ''
                     GROUP BY pipeline_tag 
                     ORDER BY COUNT(*) DESC
                 """)
@@ -341,19 +355,34 @@ class DatabaseManager:
                 cursor.execute("SELECT MAX(collected_at) FROM models")
                 last_collection = cursor.fetchone()[0]
 
-                return {
+                # 상위 작성자
+                cursor.execute("""
+                    SELECT author, COUNT(*) as model_count
+                    FROM models 
+                    WHERE author IS NOT NULL AND author != ''
+                    GROUP BY author 
+                    ORDER BY model_count DESC 
+                    LIMIT 5
+                """)
+                top_authors = dict(cursor.fetchall())
+
+                stats = {
                     'total_models': total_models,
                     'total_evaluations': total_evaluations,
                     'task_counts': task_counts,
-                    'last_collection': last_collection
+                    'last_collection': last_collection,
+                    'top_authors': top_authors
                 }
 
+                logger.debug(f"📊 통계 조회 완료: {total_models:,}개 모델, {total_evaluations:,}개 평가")
+                return stats
+
         except sqlite3.Error as e:
-            logger.error(f"통계 조회 실패: {e}")
+            logger.error(f"❌ 통계 조회 실패: {e}")
             return {}
 
     def search_models(self, query: str, limit: int = 50) -> pd.DataFrame:
-        """모델 검색"""
+        """모델 검색 (README 검색 기능 구현)"""
         try:
             with sqlite3.connect(self.db_path) as conn:
                 sql_query = """
@@ -365,14 +394,16 @@ class DatabaseManager:
                 search_term = f"%{query}%"
                 params = [search_term, search_term, search_term, limit]
 
-                return pd.read_sql_query(sql_query, conn, params=params)
+                df = pd.read_sql_query(sql_query, conn, params=params)
+                logger.debug(f"🔍 모델 검색 '{query}': {len(df)}개 결과")
+                return df
 
         except sqlite3.Error as e:
-            logger.error(f"모델 검색 실패: {e}")
+            logger.error(f"❌ 모델 검색 실패: {e}")
             return pd.DataFrame()
 
     def get_top_models_by_downloads(self, limit: int = 50, task: Optional[str] = None) -> pd.DataFrame:
-        """다운로드 수 기준 상위 모델"""
+        """다운로드 수 기준 상위 모델 (README 상위 모델 표 구현)"""
         try:
             with sqlite3.connect(self.db_path) as conn:
                 query = "SELECT * FROM models"
@@ -385,58 +416,123 @@ class DatabaseManager:
                 query += " ORDER BY downloads DESC LIMIT ?"
                 params.append(limit)
 
-                return pd.read_sql_query(query, conn, params=params)
+                df = pd.read_sql_query(query, conn, params=params)
+                logger.debug(f"🏆 상위 모델 조회: {len(df)}개")
+                return df
 
         except sqlite3.Error as e:
-            logger.error(f"상위 모델 조회 실패: {e}")
+            logger.error(f"❌ 상위 모델 조회 실패: {e}")
             return pd.DataFrame()
 
     def export_to_csv(self, output_dir: str = "exports"):
-        """데이터를 CSV로 내보내기"""
+        """데이터를 CSV로 내보내기 (README 내보내기 구현)"""
         try:
             output_path = Path(output_dir)
             output_path.mkdir(exist_ok=True)
 
+            exported_files = []
+
             with sqlite3.connect(self.db_path) as conn:
-                # 모델 데이터
-                models_df = pd.read_sql_query("SELECT * FROM models", conn)
-                models_df.to_csv(output_path / "models.csv", index=False, encoding='utf-8')
+                # 모델 데이터 내보내기
+                models_df = pd.read_sql_query("SELECT * FROM models ORDER BY downloads DESC", conn)
+                if not models_df.empty:
+                    models_file = output_path / "models.csv"
+                    models_df.to_csv(models_file, index=False, encoding='utf-8')
+                    exported_files.append(str(models_file))
 
-                # 평가 데이터
-                evaluations_df = pd.read_sql_query("SELECT * FROM evaluations", conn)
-                evaluations_df.to_csv(output_path / "evaluations.csv", index=False, encoding='utf-8')
+                # 평가 데이터 내보내기
+                evaluations_df = pd.read_sql_query("SELECT * FROM evaluations ORDER BY collected_at DESC", conn)
+                if not evaluations_df.empty:
+                    evaluations_file = output_path / "evaluations.csv"
+                    evaluations_df.to_csv(evaluations_file, index=False, encoding='utf-8')
+                    exported_files.append(str(evaluations_file))
 
-                # 태스크 카테고리
+                # 태스크 카테고리 내보내기
                 tasks_df = pd.read_sql_query("SELECT * FROM task_categories", conn)
-                tasks_df.to_csv(output_path / "task_categories.csv", index=False, encoding='utf-8')
+                if not tasks_df.empty:
+                    tasks_file = output_path / "task_categories.csv"
+                    tasks_df.to_csv(tasks_file, index=False, encoding='utf-8')
+                    exported_files.append(str(tasks_file))
 
-                logger.info(f"데이터 내보내기 완료: {output_path}")
+                # 수집 통계 내보내기
+                stats_df = pd.read_sql_query("SELECT * FROM collection_stats ORDER BY created_at DESC", conn)
+                if not stats_df.empty:
+                    stats_file = output_path / "collection_stats.csv"
+                    stats_df.to_csv(stats_file, index=False, encoding='utf-8')
+                    exported_files.append(str(stats_file))
+
+            logger.info(f"📁 데이터 내보내기 완료: {len(exported_files)}개 파일")
+            for file_path in exported_files:
+                logger.info(f"   • {file_path}")
 
         except Exception as e:
-            logger.error(f"데이터 내보내기 실패: {e}")
+            logger.error(f"❌ 데이터 내보내기 실패: {e}")
 
     def backup_database(self, backup_path: Optional[str] = None):
-        """데이터베이스 백업"""
+        """데이터베이스 백업 (README 문제 해결 구현)"""
         if not backup_path:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             backup_path = f"data/backup_llm_evaluations_{timestamp}.db"
 
         try:
             import shutil
+            backup_path_obj = Path(backup_path)
+            backup_path_obj.parent.mkdir(parents=True, exist_ok=True)
+
             shutil.copy2(self.db_path, backup_path)
-            logger.info(f"데이터베이스 백업 완료: {backup_path}")
+            logger.info(f"💾 데이터베이스 백업 완료: {backup_path}")
+            return backup_path
         except Exception as e:
-            logger.error(f"데이터베이스 백업 실패: {e}")
+            logger.error(f"❌ 데이터베이스 백업 실패: {e}")
+            return None
 
     def vacuum_database(self):
-        """데이터베이스 최적화"""
+        """데이터베이스 최적화 (README 성능 최적화 구현)"""
         try:
             with sqlite3.connect(self.db_path) as conn:
+                logger.info("🔧 데이터베이스 최적화 시작...")
                 conn.execute("VACUUM")
-                logger.info("데이터베이스 최적화 완료")
+                conn.execute("ANALYZE")
+                logger.info("✅ 데이터베이스 최적화 완료")
         except sqlite3.Error as e:
-            logger.error(f"데이터베이스 최적화 실패: {e}")
+            logger.error(f"❌ 데이터베이스 최적화 실패: {e}")
+
+    def get_database_size(self) -> Dict[str, Any]:
+        """데이터베이스 크기 정보 조회"""
+        try:
+            file_size = self.db_path.stat().st_size
+            size_mb = file_size / (1024 * 1024)
+
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+
+                # 테이블별 레코드 수
+                tables = ['models', 'evaluations', 'task_categories', 'collection_stats']
+                table_counts = {}
+
+                for table in tables:
+                    cursor.execute(f"SELECT COUNT(*) FROM {table}")
+                    table_counts[table] = cursor.fetchone()[0]
+
+            return {
+                'file_size_bytes': file_size,
+                'file_size_mb': round(size_mb, 2),
+                'table_counts': table_counts,
+                'db_path': str(self.db_path)
+            }
+
+        except Exception as e:
+            logger.error(f"❌ 데이터베이스 크기 조회 실패: {e}")
+            return {}
 
     def close(self):
-        """데이터베이스 연결 종료 (명시적 종료가 필요한 경우)"""
-        logger.info("데이터베이스 관리자 종료")
+        """데이터베이스 연결 종료 (README 리소스 정리 구현)"""
+        logger.debug("🔒 데이터베이스 관리자 종료")
+
+    def __enter__(self):
+        """컨텍스트 매니저 진입"""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """컨텍스트 매니저 종료"""
+        self.close()

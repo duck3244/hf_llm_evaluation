@@ -20,68 +20,55 @@ class Config:
     REPORTS_DIR = "reports"
     EXPORTS_DIR = "exports"
 
-    # 수집할 태스크 목록
+    # 수집할 태스크 목록 (README의 지원 태스크와 일치)
     TASKS_TO_COLLECT = [
         "text-generation",
         "text-classification",
         "question-answering",
         "summarization",
-        "translation",
-        "token-classification",
-        "fill-mask",
-        "text2text-generation"
+        "translation"
     ]
 
-    # 태스크별 설정
-    MODELS_PER_TASK = 30
+    # 태스크별 설정 (README 예시와 일치)
+    MODELS_PER_TASK = int(os.getenv("MODELS_PER_TASK", 30))
     MAX_EVALUATIONS_PER_MODEL = 10
 
-    # API 요청 설정
-    API_DELAY = 0.1  # 초
+    # API 요청 설정 (README 예시와 일치)
+    API_DELAY = float(os.getenv("API_DELAY", 0.1))  # 초
     REQUEST_TIMEOUT = 30  # 초
     MAX_RETRIES = 3
 
-    # 태스크 카테고리 정의
+    # 태스크 카테고리 정의 (README 테이블과 정확히 일치)
     TASK_CATEGORIES = {
         "text-generation": {
-            "description": "텍스트 생성 태스크",
-            "common_datasets": ["hellaswag", "arc", "mmlu", "truthfulqa", "winogrande"],
-            "common_metrics": ["accuracy", "perplexity", "bleu", "rouge"]
+            "description": "텍스트 생성",
+            "common_datasets": ["hellaswag", "arc", "mmlu"],
+            "common_metrics": ["accuracy", "perplexity"]
         },
         "text-classification": {
-            "description": "텍스트 분류 태스크",
-            "common_datasets": ["glue", "imdb", "sst2", "rotten_tomatoes"],
-            "common_metrics": ["accuracy", "f1", "precision", "recall"]
+            "description": "텍스트 분류",
+            "common_datasets": ["glue", "imdb", "sst2"],
+            "common_metrics": ["accuracy", "f1"]
         },
         "question-answering": {
-            "description": "질문 답변 태스크",
-            "common_datasets": ["squad", "squad_v2", "natural_questions", "ms_marco"],
-            "common_metrics": ["exact_match", "f1", "accuracy"]
+            "description": "질문 답변",
+            "common_datasets": ["squad", "natural_questions"],
+            "common_metrics": ["exact_match", "f1"]
         },
         "summarization": {
-            "description": "요약 태스크",
-            "common_datasets": ["cnn_dailymail", "xsum", "reddit_tifu", "newsroom"],
-            "common_metrics": ["rouge-1", "rouge-2", "rouge-l", "bleu", "meteor"]
+            "description": "요약",
+            "common_datasets": ["cnn_dailymail", "xsum"],
+            "common_metrics": ["rouge-1", "rouge-2"]
         },
         "translation": {
-            "description": "번역 태스크",
-            "common_datasets": ["wmt14", "wmt16", "opus", "multi30k"],
-            "common_metrics": ["bleu", "meteor", "ter", "chrf"]
-        },
-        "token-classification": {
-            "description": "토큰 분류 태스크 (NER 등)",
-            "common_datasets": ["conll2003", "ontonotes5", "wikiann"],
-            "common_metrics": ["f1", "precision", "recall", "accuracy"]
-        },
-        "fill-mask": {
-            "description": "마스크 채우기 태스크",
-            "common_datasets": ["lambada", "wikitext", "bookcorpus"],
-            "common_metrics": ["accuracy", "perplexity", "top-k-accuracy"]
+            "description": "번역",
+            "common_datasets": ["wmt14", "opus"],
+            "common_metrics": ["bleu", "meteor"]
         }
     }
 
-    # 로깅 설정
-    LOG_LEVEL = "INFO"
+    # 로깅 설정 (README 예시와 일치)
+    LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
     LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
     @classmethod

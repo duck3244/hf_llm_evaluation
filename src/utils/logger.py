@@ -1,6 +1,6 @@
 """
 로깅 유틸리티 모듈
-프로젝트 전체에서 사용할 로거 설정 및 관리
+README 예시와 일치하도록 수정된 로거 설정 및 관리
 """
 
 import logging
@@ -13,7 +13,7 @@ from datetime import datetime
 def setup_logger(name: str, level: str = "INFO",
                  log_file: Optional[str] = None,
                  format_string: Optional[str] = None) -> logging.Logger:
-    """로거 설정"""
+    """로거 설정 (README 예시 구현)"""
 
     if format_string is None:
         format_string = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -57,16 +57,16 @@ def get_logger(name: str) -> logging.Logger:
 
 
 class ColoredFormatter(logging.Formatter):
-    """컬러 로그 포매터"""
+    """컬러 로그 포매터 (README의 상세 로깅 구현)"""
 
     # ANSI 컬러 코드
     COLORS = {
-        'DEBUG': '\033[36m',  # 청록색
-        'INFO': '\033[32m',  # 녹색
+        'DEBUG': '\033[36m',    # 청록색
+        'INFO': '\033[32m',     # 녹색
         'WARNING': '\033[33m',  # 노란색
-        'ERROR': '\033[31m',  # 빨간색
-        'CRITICAL': '\033[35m',  # 마젠타
-        'RESET': '\033[0m'  # 리셋
+        'ERROR': '\033[31m',    # 빨간색
+        'CRITICAL': '\033[35m', # 마젠타
+        'RESET': '\033[0m'      # 리셋
     }
 
     def format(self, record):
@@ -80,7 +80,7 @@ class ColoredFormatter(logging.Formatter):
 
 
 def setup_colored_logger(name: str, level: str = "INFO") -> logging.Logger:
-    """컬러 로거 설정"""
+    """컬러 로거 설정 (README의 --verbose 옵션 구현)"""
     logger = logging.getLogger(name)
 
     # 기존 핸들러 제거
@@ -103,7 +103,7 @@ def setup_colored_logger(name: str, level: str = "INFO") -> logging.Logger:
 
 
 class ProgressLogger:
-    """진행률 로깅을 위한 클래스"""
+    """진행률 로깅을 위한 클래스 (README의 배치 수집 구현)"""
 
     def __init__(self, total: int, logger: logging.Logger,
                  prefix: str = "Progress", interval: int = 10):
@@ -133,41 +133,41 @@ class ProgressLogger:
             eta_str = "Unknown"
 
         self.logger.info(
-            f"{self.prefix}: {self.current}/{self.total} "
+            f"📊 {self.prefix}: {self.current}/{self.total} "
             f"({percentage:.1f}%) - "
-            f"Elapsed: {str(elapsed).split('.')[0]} - "
-            f"ETA: {eta_str}"
+            f"경과: {str(elapsed).split('.')[0]} - "
+            f"예상 완료: {eta_str}"
         )
 
     def finish(self):
         """완료 로깅"""
         elapsed = datetime.now() - self.start_time
         self.logger.info(
-            f"{self.prefix} completed: {self.current}/{self.total} "
-            f"in {str(elapsed).split('.')[0]}"
+            f"✅ {self.prefix} 완료: {self.current}/{self.total} "
+            f"(소요시간: {str(elapsed).split('.')[0]})"
         )
 
 
 def log_function_call(func):
-    """함수 호출 로깅 데코레이터"""
+    """함수 호출 로깅 데코레이터 (README의 디버깅 구현)"""
 
     def wrapper(*args, **kwargs):
         logger = get_logger(func.__module__)
-        logger.debug(f"Calling {func.__name__} with args={args}, kwargs={kwargs}")
+        logger.debug(f"🔧 함수 호출: {func.__name__} with args={args}, kwargs={kwargs}")
 
         try:
             result = func(*args, **kwargs)
-            logger.debug(f"{func.__name__} completed successfully")
+            logger.debug(f"✅ {func.__name__} 성공 완료")
             return result
         except Exception as e:
-            logger.error(f"{func.__name__} failed with error: {e}")
+            logger.error(f"❌ {func.__name__} 실패: {e}")
             raise
 
     return wrapper
 
 
 def log_execution_time(func):
-    """실행 시간 로깅 데코레이터"""
+    """실행 시간 로깅 데코레이터 (README의 성능 모니터링 구현)"""
 
     def wrapper(*args, **kwargs):
         logger = get_logger(func.__module__)
@@ -176,19 +176,19 @@ def log_execution_time(func):
         try:
             result = func(*args, **kwargs)
             elapsed = datetime.now() - start_time
-            logger.info(f"{func.__name__} executed in {elapsed.total_seconds():.2f} seconds")
+            logger.info(f"⏱️  {func.__name__} 실행 완료: {elapsed.total_seconds():.2f}초")
             return result
         except Exception as e:
             elapsed = datetime.now() - start_time
-            logger.error(f"{func.__name__} failed after {elapsed.total_seconds():.2f} seconds: {e}")
+            logger.error(f"❌ {func.__name__} 실패 ({elapsed.total_seconds():.2f}초): {e}")
             raise
 
     return wrapper
 
 
-# 기본 로거 설정
+# README 예시에 맞는 프로젝트 로깅 초기화
 def init_project_logging(log_level: str = "INFO", log_dir: str = "logs"):
-    """프로젝트 전체 로깅 초기화"""
+    """프로젝트 전체 로깅 초기화 (README 예시 구현)"""
 
     # 로그 디렉토리 생성
     log_path = Path(log_dir)
@@ -198,7 +198,7 @@ def init_project_logging(log_level: str = "INFO", log_dir: str = "logs"):
     timestamp = datetime.now().strftime("%Y%m%d")
     main_log_file = log_path / f"hf_llm_evaluation_{timestamp}.log"
 
-    # 루트 로거 설정
+    # 루트 로거 설정 (README 형식)
     root_logger = setup_logger(
         name="hf_llm_evaluation",
         level=log_level,
@@ -207,27 +207,83 @@ def init_project_logging(log_level: str = "INFO", log_dir: str = "logs"):
 
     # 각 모듈별 로거 설정
     modules = [
-        "hf_llm_evaluation.api",
-        "hf_llm_evaluation.database",
-        "hf_llm_evaluation.collectors",
-        "hf_llm_evaluation.utils"
+        "src.api",
+        "src.database",
+        "src.collectors",
+        "src.utils"
     ]
 
     for module in modules:
         logger = setup_logger(module, level=log_level)
-        logger.info(f"Logger initialized for {module}")
+        logger.debug(f"모듈 로거 초기화: {module}")
 
-    root_logger.info("Project logging initialized")
+    root_logger.info("🚀 HuggingFace LLM 평가 프로젝트 로깅 시스템 초기화 완료")
+    root_logger.info(f"   • 로그 레벨: {log_level}")
+    root_logger.info(f"   • 로그 파일: {main_log_file}")
+
     return root_logger
 
 
-# 전역 로거 인스턴스 (지연 초기화)
+# 전역 로거 인스턴스 (README의 사용 패턴과 일치)
 _project_logger: Optional[logging.Logger] = None
 
 
 def get_project_logger() -> logging.Logger:
-    """프로젝트 메인 로거 반환"""
+    """프로젝트 메인 로거 반환 (README 예시 구현)"""
     global _project_logger
     if _project_logger is None:
         _project_logger = init_project_logging()
     return _project_logger
+
+
+# README의 실시간 모니터링 예시를 위한 추가 함수
+def setup_monitoring_logger(name: str = "monitoring") -> logging.Logger:
+    """실시간 모니터링용 로거 설정"""
+    logger = setup_logger(
+        name=name,
+        level="INFO",
+        log_file=f"logs/monitoring_{datetime.now().strftime('%Y%m%d')}.log"
+    )
+    return logger
+
+
+def log_collection_stats(stats: dict, logger: logging.Logger):
+    """수집 통계 로깅 (README 형식)"""
+    logger.info("📊 수집 통계:")
+    logger.info(f"   • 총 모델: {stats.get('total_models', 0):,}개")
+    logger.info(f"   • 총 평가 결과: {stats.get('total_evaluations', 0):,}개")
+    logger.info(f"   • 성공률: {stats.get('success_rate', 0):.2%}")
+
+
+def log_api_request(endpoint: str, params: dict, logger: logging.Logger):
+    """API 요청 로깅 (README의 API 제한 모니터링)"""
+    logger.debug(f"🌐 API 요청: {endpoint}")
+    logger.debug(f"   • 파라미터: {params}")
+
+
+def log_database_operation(operation: str, table: str, count: int, logger: logging.Logger):
+    """데이터베이스 작업 로깅"""
+    logger.debug(f"💾 DB 작업: {operation} - {table} ({count}개 레코드)")
+
+
+# README의 문제 해결 섹션을 위한 진단 함수
+def diagnose_logging_issues():
+    """로깅 관련 문제 진단"""
+    issues = []
+
+    # 로그 디렉토리 확인
+    log_dir = Path("logs")
+    if not log_dir.exists():
+        issues.append("로그 디렉토리가 존재하지 않습니다.")
+    elif not log_dir.is_dir():
+        issues.append("logs가 디렉토리가 아닙니다.")
+
+    # 권한 확인
+    try:
+        test_file = log_dir / "test.log"
+        test_file.touch()
+        test_file.unlink()
+    except PermissionError:
+        issues.append("로그 디렉토리에 쓰기 권한이 없습니다.")
+
+    return issues
